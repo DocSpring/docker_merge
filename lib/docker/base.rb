@@ -39,7 +39,7 @@ module Docker
     def dump_image(image)
       dir = Dir.mktmpdir
       puts "Dumping #{image} image to: #{dir}"
-      `skopeo --insecure-policy copy \
+      `skopeo --debug --insecure-policy copy \
         "docker-daemon:#{image}" dir:#{dir}/`
       dir
     end

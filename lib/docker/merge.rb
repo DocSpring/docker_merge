@@ -53,7 +53,10 @@ module Docker
           next if layer_digests.include?(layer_digest)
 
           layer_digests << layer_digest
-          FileUtils.cp("#{dir}/#{layer_digest}", "#{output_dir}/#{layer_digest}")
+
+          # We use a forked skopeo with layer copying disabled
+          # FileUtils.cp("#{dir}/#{layer_digest}", "#{output_dir}/#{layer_digest}")
+
           layers << {
             layer: layer,
             history: layer_history[layer_index]
@@ -81,7 +84,8 @@ module Docker
       end
 
       # Finally, push the merged Docker image to the Docker daemon
-      `skopeo --insecure-policy copy dir:#{output_dir}/ "docker-daemon:#{output_tag}"`
+      puts "Pushing merged Docker image to docker-daemon:#{output_tag}..."
+      `skopeo --debug --insecure-policy copy dir:#{output_dir}/ "docker-daemon:#{output_tag}"`
 
       # Remove temp dirs
       image_dirs.each do |_image, dir|

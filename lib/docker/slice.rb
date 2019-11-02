@@ -49,7 +49,8 @@ module Docker
 
         layer_digest = layer['digest'].sub(/sha256:/, '')
 
-        FileUtils.cp("#{image_dir}/#{layer_digest}", "#{output_dir}/#{layer_digest}")
+        # We use a forked skopeo with layer copying disabled
+        # FileUtils.cp("#{image_dir}/#{layer_digest}", "#{output_dir}/#{layer_digest}")
 
         layers << {
           layer: layer,
@@ -77,8 +78,8 @@ module Docker
       end
 
       # Finally, push the merged Docker image to the Docker daemon
-      puts "Pushing output Docker image to docker-daemon:#{output_tag}..."
-      `skopeo --insecure-policy copy dir:#{output_dir}/ "docker-daemon:#{output_tag}"`
+      puts "Pushing sliced Docker image to docker-daemon:#{output_tag}..."
+      `skopeo --debug --insecure-policy copy dir:#{output_dir}/ "docker-daemon:#{output_tag}"`
 
       # Remove temp dirs
       FileUtils.rm_r(image_dir, force: true)
