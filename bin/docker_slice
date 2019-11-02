@@ -1,0 +1,68 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require 'optparse'
+require 'docker/slice'
+
+options = { before: [], after: [], filters: [] }
+OptionParser.new do |opts|
+  opts.banner = 'Usage: docker_slice <output_tag> ' \
+    '<input_tag> [options]'
+
+  # opts.on(
+  #   '-a',
+  #   '--after-inclusive=AFTER',
+  #   'Ignore all layers before the matching layer'
+  # ) do |q|
+  #   options[:after] << { query: q, inclusive: true }
+  # end
+  # opts.on(
+  #   '-A',
+  #   '--after-exclusive=AFTER',
+  #   'Ignore all layers before the matching layer, ' \
+  #   'and also ignore the matching layer'
+  # ) do |q|
+  #   options[:after] << { query: q, inclusive: false }
+  # end
+
+  # opts.on(
+  #   '-b',
+  #   '--before-inclusive=FILTER',
+  #   'Search for a matching layer, then include the matching layer ' \
+  #     'and all following layers.'
+  # ) do |q|
+  #   options[:before] << { query: q, inclusive: true }
+  # end
+  # opts.on(
+  #   '-B',
+  #   '--before-exclusive=FILTER',
+  #   'Search for a matching layer, then include all following layers ' \
+  #     '(not including the matching layer.)'
+  # ) do |q|
+  #   options[:before] << { query: q, inclusive: false }
+  # end
+
+  opts.on(
+    '-f', '--filter=FILTER',
+    'Include all layers where the command matches the filter. ' \
+    'Multiple filters can be provided. A layer will be included if ' \
+    'it matches any of the filters.'
+  ) do |q|
+    options[:filters] << q
+  end
+end.parse!
+
+raise "<output_tag> and <input_tag> are required!" if ARGV.count < 2
+
+output_tag = ARGV.shift
+input_tag = ARGV.shift
+
+if options[:filters].length.zero?
+  raise 'You must provide at least one for the input Docker images!'
+end
+
+puts "Filtering layers for Docker image: #{input_tag}"
+result = Docker::Slice.new(output_tag, input_tag, options).slice
+
+puts "Sliced Docker image layers => #{output_tag}!"
+puts "Output image has #{result[:layers]} layer(s)"

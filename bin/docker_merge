@@ -2,24 +2,19 @@
 # frozen_string_literal: true
 
 require 'optparse'
-require 'docker_merge'
+require 'docker/merge'
 
 options = {}
 OptionParser.new do |opts|
-  opts.banner = 'Usage: docker_merge -t <merged_tag> ' \
+  opts.banner = 'Usage: docker_merge <output_tag> ' \
     '<input_tag_1> <input_tag_2> ...'
-
-  opts.on('-t', '--tag=TAG', 'Docker tag for the merged image') do |tag|
-    options[:tag] = tag
-  end
 end.parse!
 
+raise 'You must provide an output tag and at least 2 input tags!' if ARGV.count < 3
+
+output_tag = ARGV.shift
 input_tags = ARGV
 
-if input_tags.length < 2
-  raise 'You must provide at least 2 tags for the input Docker images!'
-end
+Docker::Merge.new(output_tag, input_tags).merge
 
-DockerMerge.new(options[:tag], input_tags).merge
-
-puts "Merged Docker images into #{options[:tag]}!"
+puts "Merged Docker images => #{output_tag}"

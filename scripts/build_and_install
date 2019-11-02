@@ -1,0 +1,5 @@
+#!/bin/bash
+set -e
+rm -f docker_merge-*.gem
+gem build docker_merge.gemspec
+gem install docker_merge-*.gem

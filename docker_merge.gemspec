@@ -8,8 +8,8 @@ Gem::Specification.new do |s|
   s.description = 'Merge layers from multiple Docker images'
   s.authors     = ['Nathan Broadbent']
   s.email       = 'nathan@formapi.io'
-  s.files       = ['lib/docker_merge.rb']
-  s.executables = ['docker_merge']
+  s.files       = Dir.glob('lib/**/*')
+  s.executables = %w[docker_merge docker_slice]
   s.homepage    = 'https://rubygems.org/gems/docker_merge'
   s.license = 'MIT'
 

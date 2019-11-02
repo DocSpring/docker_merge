@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require 'minitest/autorun'
-require 'docker_merge'
+require 'docker/merge'
 require 'securerandom'
 require 'pry-byebug'
 
@@ -43,19 +43,19 @@ class TestDockerMerge < Minitest::Test
   def teardown
     FileUtils.remove_entry @dir if @dir
     # Only delete the merged image. Initial images can be re-used.
-    `docker rmi -f #{@merged_tag} || true` if @merged_tag
+    `docker rmi -f #{@output_tag} || true` if @output_tag
   end
 
   def test_that_docker_merge_works
-    @merged_tag = "merge-test:merged-#{SecureRandom.hex(5)}"
-    DockerMerge.new(@merged_tag, @image_tags).merge
+    @output_tag = "merge-test:merged-#{SecureRandom.hex(5)}"
+    Docker::Merge.new(@output_tag, @image_tags).merge
 
     output = `docker run --rm \
-      #{@merged_tag} sh -c "cat /tmp/a /tmp/b /tmp/c"`.chomp
+      #{@output_tag} sh -c "cat /tmp/a /tmp/b /tmp/c"`.chomp
     assert_equal "foo\nbar\nbaz", output
 
     # Make sure we can read the history (and it's not corrupted or anything)
-    docker_history = `docker history #{@merged_tag}`.lines
+    docker_history = `docker history #{@output_tag}`.lines
     assert_equal docker_history.count, 5
     assert_includes docker_history[0], 'IMAGE'
     assert_includes docker_history[1], 'echo "baz"'

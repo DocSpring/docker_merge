@@ -39,6 +39,12 @@ The config and manifest are taken from the first input image. The layers and his
 
 * [A Peek into Docker Images](https://medium.com/tenable-techblog/a-peek-into-docker-images-b4d6b2362eb)
 
+## Related Projects
+
+* [PowerShell-RegistryDocker](https://github.com/nicholasdille/PowerShell-RegistryDocker)
+  * [How to Reduce the Build Time of a Monolithic #Docker Image](https://dille.name/blog/2018/08/19/how-to-reduce-the-build-time-of-a-monolithic-docker-image/)
+  * [How to Automate the Merging of Layers from #Docker Images in #PowerShell](https://dille.name/blog/2018/09/07/how-to-automate-the-merging-of-layers-from-docker-images-in-powershell/)
+
 ## License
 
 MIT
