@@ -38,6 +38,7 @@ The config and manifest are taken from the first input image. The layers and his
 ## References
 
 * [A Peek into Docker Images](https://medium.com/tenable-techblog/a-peek-into-docker-images-b4d6b2362eb)
+* [Accessing Docker Container File system from Mac OS host](http://www.vivekjuneja.in/tips/2016/12/02/docker-1.12.3-view-host-fs/)
 
 ## Related Projects
 
