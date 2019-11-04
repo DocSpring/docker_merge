@@ -32,7 +32,7 @@ module Docker
       output_manifest = manifest.dup
 
       # Copy the version file, e.g. "Directory Transport Version: 1.1\n"
-      FileUtils.cp("#{image_dir}/version", "#{output_dir}/version")
+      FileUtils.mv("#{image_dir}/version", "#{output_dir}/version")
       layer_histories = config['history'].reject { |l| l['empty_layer'] }
 
       manifest['layers'].each_with_index do |layer, layer_index|
@@ -50,7 +50,9 @@ module Docker
         layer_digest = layer['digest'].sub(/sha256:/, '')
 
         # We use a forked skopeo with layer copying disabled
-        # FileUtils.cp("#{image_dir}/#{layer_digest}", "#{output_dir}/#{layer_digest}")
+        FileUtils.mv("#{image_dir}/#{layer_digest}", "#{output_dir}/#{layer_digest}")
+
+        puts "Including layer: #{layer_digest}"
 
         layers << {
           layer: layer,
@@ -76,6 +78,11 @@ module Docker
       File.open("#{output_dir}/manifest.json", 'w') do |f|
         f.write output_manifest.to_json
       end
+
+      puts "Config\n------------------------"
+      puts JSON.pretty_generate(output_config)
+      puts "\n\nManifest\n------------------------"
+      puts JSON.pretty_generate(output_manifest)
 
       # Finally, push the merged Docker image to the Docker daemon
       puts "Pushing sliced Docker image to docker-daemon:#{output_tag}..."

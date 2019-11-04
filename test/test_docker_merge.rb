@@ -56,6 +56,8 @@ class TestDockerMerge < Minitest::Test
 
     # Make sure we can read the history (and it's not corrupted or anything)
     docker_history = `docker history #{@output_tag}`.lines
+    puts "Docker History\n------------------------"
+    puts docker_history.join
     assert_equal docker_history.count, 5
     assert_includes docker_history[0], 'IMAGE'
     assert_includes docker_history[1], 'echo "baz"'

@@ -29,8 +29,8 @@ module Docker
       output_dir = Dir.mktmpdir
 
       # Copy layers from all images
-      merged_config = nil
-      merged_manifest = nil
+      output_config = nil
+      output_manifest = nil
 
       layers = []
       layer_digests = Set.new
@@ -40,10 +40,10 @@ module Docker
         config = JSON.parse(File.read("#{dir}/#{config_digest}"))
 
         if image_index.zero?
-          merged_config = config
-          merged_manifest = manifest
+          output_config = config
+          output_manifest = manifest
           # Copy the version file, e.g. "Directory Transport Version: 1.1\n"
-          FileUtils.cp("#{dir}/version", "#{output_dir}/version")
+          FileUtils.mv("#{dir}/version", "#{output_dir}/version")
         end
 
         layer_history = config['history'].reject { |l| l['empty_layer'] }
@@ -55,8 +55,9 @@ module Docker
           layer_digests << layer_digest
 
           # We use a forked skopeo with layer copying disabled
-          # FileUtils.cp("#{dir}/#{layer_digest}", "#{output_dir}/#{layer_digest}")
+          # FileUtils.mv("#{dir}/#{layer_digest}", "#{output_dir}/#{layer_digest}")
 
+          puts "Including layer: #{layer_digest}"
           layers << {
             layer: layer,
             history: layer_history[layer_index]
@@ -64,24 +65,30 @@ module Docker
         end
       end
 
-      merged_config['history'] = layers.map { |l| l[:history] }
-      merged_config['rootfs']['diff_ids'] = layers.map { |l| l[:layer]['digest'] }
-      merged_manifest['layers'] = layers.map { |l| l[:layer] }
+      output_config['history'] = layers.map { |l| l[:history] }#.reverse
+      output_config['rootfs']['diff_ids'] = layers.map { |l| l[:layer]['digest'] }#.reverse
+      output_manifest['layers'] = layers.map { |l| l[:layer] }#.reverse
 
-      merged_config_json = merged_config.to_json
-      merged_config_digest = Digest::SHA256.hexdigest merged_config_json
-      File.open("#{output_dir}/#{merged_config_digest}", 'w') do |f|
-        f.write merged_config_json
+      output_config_json = output_config.to_json
+      output_config_digest = Digest::SHA256.hexdigest output_config_json
+      File.open("#{output_dir}/#{output_config_digest}", 'w') do |f|
+        f.write output_config_json
       end
 
-      merged_manifest['config'] = {
+      output_manifest['config'] = {
         'mediaType' => 'application/vnd.docker.container.image.v1+json',
-        'size' => merged_config_json.bytesize,
-        'digest' => "sha256:#{merged_config_digest}"
+        'size' => output_config_json.bytesize,
+        'digest' => "sha256:#{output_config_digest}"
       }
       File.open("#{output_dir}/manifest.json", 'w') do |f|
-        f.write merged_manifest.to_json
+        f.write output_manifest.to_json
       end
+
+      puts "Config\n------------------------"
+      puts JSON.pretty_generate(output_config)
+      puts "\n\nManifest\n------------------------"
+      puts JSON.pretty_generate(output_manifest)
+
 
       # Finally, push the merged Docker image to the Docker daemon
       puts "Pushing merged Docker image to docker-daemon:#{output_tag}..."

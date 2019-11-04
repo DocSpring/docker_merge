@@ -46,6 +46,22 @@ The config and manifest are taken from the first input image. The layers and his
   * [How to Reduce the Build Time of a Monolithic #Docker Image](https://dille.name/blog/2018/08/19/how-to-reduce-the-build-time-of-a-monolithic-docker-image/)
   * [How to Automate the Merging of Layers from #Docker Images in #PowerShell](https://dille.name/blog/2018/09/07/how-to-automate-the-merging-of-layers-from-docker-images-in-powershell/)
 
+## Development Notes (Mac)
+
+* How to check the docker daemon logs inside the docker VM:
+
+1. Start a new container and mount the VM filesystem
+
+```
+docker run --rm -it --privileged --pid=host -v /:/vm-root debian:stretch bash
+```
+
+2. Tail the logs
+
+```
+tail -f /vm-root/var/log/docker.log
+```
+
 ## License
 
 MIT
