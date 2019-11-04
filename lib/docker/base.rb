@@ -5,6 +5,7 @@ module Docker
   class Base
     def ensure_deps
       skopeo_output = `skopeo --version`.chomp
+      raise "skopeo command failed!" unless $?.success?
       return if skopeo_output&.include?('skopeo version')
 
       raise "Skopeo is required!\n" \
@@ -41,6 +42,7 @@ module Docker
       puts "Dumping #{image} image to: #{dir}"
       `skopeo --debug --insecure-policy copy \
         "docker-daemon:#{image}" dir:#{dir}/`
+      raise "skopeo command failed!" unless $?.success?
       dir
     end
   end

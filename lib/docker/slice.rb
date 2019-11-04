@@ -39,18 +39,18 @@ module Docker
         layer_history = layer_histories[layer_index]
         command = layer_history['created_by']
 
+        layer_digest = layer['digest'].sub(/sha256:/, '')
+
         # Always include the first layer
         if layer_index > 0
+          # Also, we never need to upload a copy of the base layer (when using a forked skopeo)
+          FileUtils.mv("#{image_dir}/#{layer_digest}", "#{output_dir}/#{layer_digest}")
+
           # Check filters
           next unless options[:filters].any? do |filter|
             command.include?(filter)
           end
         end
-
-        layer_digest = layer['digest'].sub(/sha256:/, '')
-
-        # We use a forked skopeo with layer copying disabled
-        FileUtils.mv("#{image_dir}/#{layer_digest}", "#{output_dir}/#{layer_digest}")
 
         puts "Including layer: #{layer_digest}"
 
@@ -87,6 +87,7 @@ module Docker
       # Finally, push the merged Docker image to the Docker daemon
       puts "Pushing sliced Docker image to docker-daemon:#{output_tag}..."
       `skopeo --debug --insecure-policy copy dir:#{output_dir}/ "docker-daemon:#{output_tag}"`
+      raise "skopeo command failed!" unless $?.success?
 
       # Remove temp dirs
       FileUtils.rm_r(image_dir, force: true)

@@ -54,8 +54,11 @@ module Docker
 
           layer_digests << layer_digest
 
-          # We use a forked skopeo with layer copying disabled
-          # FileUtils.mv("#{dir}/#{layer_digest}", "#{output_dir}/#{layer_digest}")
+
+          if layer_index > 0
+            # We never need to upload a copy of the base layer (when using a forked skopeo)
+            FileUtils.mv("#{dir}/#{layer_digest}", "#{output_dir}/#{layer_digest}")
+          end
 
           puts "Including layer: #{layer_digest}"
           layers << {
@@ -93,6 +96,7 @@ module Docker
       # Finally, push the merged Docker image to the Docker daemon
       puts "Pushing merged Docker image to docker-daemon:#{output_tag}..."
       `skopeo --debug --insecure-policy copy dir:#{output_dir}/ "docker-daemon:#{output_tag}"`
+      raise "skopeo command failed!" unless $?.success?
 
       # Remove temp dirs
       image_dirs.each do |_image, dir|

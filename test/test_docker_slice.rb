@@ -33,6 +33,7 @@ class TestDockerSlice < Minitest::Test
 
     # puts "Building #{dockerfile} => #{@input_tag}"
     `docker build -f #{dockerfile} -t #{@input_tag} .`
+    raise "docker command failed!" unless $?.success?
 
     output = `docker run --rm #{@input_tag} sh -c "ls /tmp/*"`.chomp
     expected = ('a'..'e').to_a.map {|c| "/tmp/#{c}" }.join("\n")
@@ -55,9 +56,13 @@ class TestDockerSlice < Minitest::Test
     Docker::Slice.new(output_tag, @input_tag, filters: ["bar"]).slice
 
     output = `docker run --rm #{output_tag} sh -c "ls /tmp/*"`.chomp
+    raise "docker command failed!" unless $?.success?
     assert_equal '/tmp/b', output
 
     docker_history = `docker history #{output_tag}`.lines
+    raise "docker command failed!" unless $?.success?
+    puts "Docker History\n------------------------"
+    puts docker_history.join
     assert_equal docker_history.count, 3
     assert_includes docker_history[1], 'echo "bar"'
     assert_includes docker_history[1], ' 4B '

@@ -33,9 +33,11 @@ class TestDockerMerge < Minitest::Test
 
       # puts "Building #{dockerfile} => #{image_tag}"
       `docker build -f #{dockerfile} -t #{image_tag} .`
+      raise "docker command failed!" unless $?.success?
 
       output = `docker run --rm \
         #{image_tag} sh -c "cat /tmp/#{file}"`.chomp
+      raise "docker command failed!" unless $?.success?
       assert_equal text, output
     end
   end
@@ -52,12 +54,14 @@ class TestDockerMerge < Minitest::Test
 
     output = `docker run --rm \
       #{@output_tag} sh -c "cat /tmp/a /tmp/b /tmp/c"`.chomp
+    raise "docker command failed!" unless $?.success?
     assert_equal "foo\nbar\nbaz", output
 
     # Make sure we can read the history (and it's not corrupted or anything)
     docker_history = `docker history #{@output_tag}`.lines
-    puts "Docker History\n------------------------"
-    puts docker_history.join
+    raise "docker command failed!" unless $?.success?
+    # puts "Docker History\n------------------------"
+    # puts docker_history.join
     assert_equal docker_history.count, 5
     assert_includes docker_history[0], 'IMAGE'
     assert_includes docker_history[1], 'echo "baz"'
